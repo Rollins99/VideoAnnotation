@@ -1,0 +1,8 @@
+{
+  "cameras": [
+    {
+      "name": "Camera1",
+      "frame_resolution" : [1280,720]
+    }
+  ]
+}
