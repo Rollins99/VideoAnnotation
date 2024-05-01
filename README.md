@@ -1,14 +1,22 @@
-1. Create a virtual environment and activate it
+# Video Annotation
 
-`   python -m .venv
+## Initial Installation
 
-   ".venv/Scripts/activate"
-`
-3. install required dependencies
+- From the program folder using cmd or bash
+- Create a virtual environment and activate it
 
-`   pip install -r requirements.txt
-`
-5. Add your own demo.mp4 file You could use this one -> {Video by Ha Dong Nguyen from Pexels: https://www.pexels.com/video/motorcycle-riders-dominating-the-traffic-in-a-road-in-vietnam-3125979/}
+```python  
+python -m .venv
+.venv/Scripts/activate
+```
 
-6. Run app.py
+- install required dependencies
+
+```python  
+pip install -r requirements.txt
+```  
+
+- Add your own demo.mp4 file You could use this one -> {Video by Ha Dong Nguyen from Pexels: https://www.pexels.com/video/motorcycle-riders-dominating-the-traffic-in-a-road-in-vietnam-3125979/}
+
+- Run app.py
 
