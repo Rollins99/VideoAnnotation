@@ -96,5 +96,5 @@ def main(filename, model):
 
 
 if __name__ == "__main__":
-    model = YOLO("yolov8n.pt")
-    main("demo2.mp4", model)
+    model = YOLO(".venv/yolov8n.pt")
+    main(".venv/demo.mp4", model)
