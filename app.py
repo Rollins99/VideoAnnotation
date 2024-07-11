@@ -1,5 +1,6 @@
 import cv2
 import torch
+import filetype
 import time as tm
 from ultralytics import YOLO
 import supervision as sv
@@ -34,7 +35,9 @@ def process_frame(frame, model, shape_annotator, text_annotator, object_dict, de
         object_dict[class_name] = 0
 
     for label in labels:
-        class_name, confidence = label.split(" ")
+        final_space = label.rfind(" ")
+        class_name = label[: final_space]
+        confidence = label[final_space + 1 :]
         if class_name in object_dict:
             object_dict[class_name] += 1
         else:
@@ -91,6 +94,35 @@ def process_video_stream(video_capture, model, shape_annotator, text_annotator, 
             break
         capture_success, frame = video_capture.read()
 
+def process_video(filename, model, device):
+        video_capture = get_video_stream(filename)
+
+        try:
+            text_annotator, shape_annotator = get_annotators()
+            start = tm.time_ns()
+            process_video_stream(video_capture, model, shape_annotator, text_annotator, device)
+
+        except Exception as e:
+            print(f"Error occurred during processing: {e}")
+
+        finally:
+            end = tm.time_ns()
+            print("vid_time:", (end - start) / 1e9)
+            video_capture.release()
+            cv2.destroyAllWindows()
+
+def process_image(filename, model, device):
+    img = cv2.imread(filename, cv2.IMREAD_COLOR)
+    img = cv2.resize(img, (0, 0), fx = 0.6, fy = 0.6)
+    text_annotator, shape_annotator = get_annotators()
+
+    object_dict = {}
+    annotated_frame, labels, detections = process_frame(img, model, shape_annotator, text_annotator, object_dict, device)
+
+    cv2.imshow("image", annotated_frame)
+
+    cv2.waitKey(0)
+    cv2.destroyAllWindows()
 
 def main(filename, model):
     device = (
@@ -101,23 +133,14 @@ def main(filename, model):
         else "cpu"
     )
 
-    video_capture = get_video_stream(filename)
+    if filetype.is_video(filename):
+        process_video(filename, model, device)
+        return
 
-    try:
-        text_annotator, shape_annotator = get_annotators()
-        start = tm.time_ns()
-        process_video_stream(video_capture, model, shape_annotator, text_annotator, device)
-
-    except Exception as e:
-        print(f"Error occurred during processing: {e}")
-
-    finally:
-        end = tm.time_ns()
-        print("vid_time:", (end - start) / 1e9)
-        video_capture.release()
-        cv2.destroyAllWindows()
+    if filetype.is_image(filename):
+        process_image(filename, model, device)
 
 
 if __name__ == "__main__":
     model = YOLO(".venv/yolov8n.pt")
-    main(".venv/demo2.mp4", model)
+    main(".venv/plants.jpg", model)
