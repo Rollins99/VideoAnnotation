@@ -13,6 +13,7 @@ python -m .venv
 - install required dependencies
 
 ```python  
+pip install -r requirements-cuda.txt
 pip install -r requirements.txt
 ```  
 

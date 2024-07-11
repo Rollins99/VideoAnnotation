@@ -1,11 +1,12 @@
 import cv2
+import torch
 from ultralytics import YOLO
 import supervision as sv
 
 
-def process_frame(frame, model, shape_annotator, text_annotator, object_dict):
+def process_frame(frame, model, shape_annotator, text_annotator, object_dict, device):
     # Analyse the frame using the model
-    model_result = model(frame)[0]
+    model_result = model.predict(frame, device=device)[0]
 
     # convert the model output into a supervision.detections object
     detections = sv.Detections.from_ultralytics(model_result)
@@ -68,12 +69,12 @@ def get_annotators():
     return text_annotator, shape_annotator
 
 
-def process_video_stream(video_capture, model, shape_annotator, text_annotator):
+def process_video_stream(video_capture, model, shape_annotator, text_annotator, device):
     print("Processing video stream...")
     object_dict = {}
     capture_success, frame = video_capture.read()
     while capture_success:
-        annotated_frame, labels, detections = process_frame(frame, model, shape_annotator, text_annotator, object_dict)
+        annotated_frame, labels, detections = process_frame(frame, model, shape_annotator, text_annotator, object_dict, device)
         cv2.imshow("Python AI Video Viewer", annotated_frame)
         if cv2.waitKey(1) == 27:
             break
@@ -81,11 +82,19 @@ def process_video_stream(video_capture, model, shape_annotator, text_annotator):
 
 
 def main(filename, model):
+    device = (
+        "cuda"
+        if torch.cuda.is_available()
+        else "mps"
+        if torch.backends.mps.is_available()
+        else "cpu"
+    )
+
     video_capture = get_video_stream(filename)
 
     try:
         text_annotator, shape_annotator = get_annotators()
-        process_video_stream(video_capture, model, shape_annotator, text_annotator)
+        process_video_stream(video_capture, model, shape_annotator, text_annotator, device)
 
     except Exception as e:
         print(f"Error occurred during processing: {e}")
