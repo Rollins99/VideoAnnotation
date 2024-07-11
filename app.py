@@ -1,5 +1,6 @@
 import cv2
 import torch
+import time as tm
 from ultralytics import YOLO
 import supervision as sv
 
@@ -71,10 +72,20 @@ def get_annotators():
 
 def process_video_stream(video_capture, model, shape_annotator, text_annotator, device):
     print("Processing video stream...")
+
+    prev_frame_time = 0
+    frame_period = int(1e9 / video_capture.get(cv2.CAP_PROP_FPS))
+
     object_dict = {}
     capture_success, frame = video_capture.read()
     while capture_success:
         annotated_frame, labels, detections = process_frame(frame, model, shape_annotator, text_annotator, object_dict, device)
+
+        time_diff = frame_period - (tm.time_ns() - prev_frame_time)
+        if time_diff > 0:
+            tm.sleep(time_diff / 1e9)
+        prev_frame_time = tm.time_ns() + 1e3
+
         cv2.imshow("Python AI Video Viewer", annotated_frame)
         if cv2.waitKey(1) == 27:
             break
@@ -94,16 +105,19 @@ def main(filename, model):
 
     try:
         text_annotator, shape_annotator = get_annotators()
+        start = tm.time_ns()
         process_video_stream(video_capture, model, shape_annotator, text_annotator, device)
 
     except Exception as e:
         print(f"Error occurred during processing: {e}")
 
     finally:
+        end = tm.time_ns()
+        print("vid_time:", (end - start) / 1e9)
         video_capture.release()
         cv2.destroyAllWindows()
 
 
 if __name__ == "__main__":
     model = YOLO(".venv/yolov8n.pt")
-    main(".venv/demo.mp4", model)
+    main(".venv/demo2.mp4", model)
